@@ -1,13 +1,16 @@
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
+from steam_web_api import Steam
 import os
 import requests
 import json
 
 load_dotenv()
+
 app = Flask(__name__)
 
 STEAM_API_KEY = os.environ.get("API_KEY")
+steam = Steam(STEAM_API_KEY)
 #good json parser = https://jsongrid.com/json-parser
 
 def get_app_info(app_id):
@@ -39,14 +42,14 @@ def get_game_info(steam_id):
 
 def get_game_names(resp):
     games = resp.get('response', {}).get('games', [])
-    merged = []
+    merged = {}
     for game in games:
         try:
             appid = game.get('appid')
             if not get_app_info(appid): #checks if data exists
                 continue
             game_info = get_app_info(appid)  # This returns the game data
-            merged.append(game_info)
+            merged[f'{game_info['name']}'] = game_info
         except:
             pass
     
@@ -106,8 +109,17 @@ def full_json(app_id):
     else:
         return jsonify({'error': 'Failed to fetch game data'}), 500
 
+@app.route('/search/<search>')
+def search_for_app(search):
+    searching = steam.apps.search_games(search)
+    return jsonify(searching)
 
-    
+@app.route('/test/gameowned')
+def testgetgames():
+    user = steam.users.get_owned_games("76561198811058249")
+    print(user)
+    return jsonify({"error": "error"})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
