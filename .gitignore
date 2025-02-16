@@ -3,4 +3,6 @@
 testdata.json
 testuser.json
 newAPIdata.json
+appidGameNames.json
+appidOwnedGames.json
 /__pycache__
