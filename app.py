@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 from steam_web_api import Steam
+from steamapiextends import extendsAPI
 import os
 import requests
 import json
@@ -11,6 +12,7 @@ app = Flask(__name__)
 
 STEAM_API_KEY = os.environ.get("API_KEY")
 steam = Steam(STEAM_API_KEY)
+ext = extendsAPI(STEAM_API_KEY)
 #good json parser = https://jsongrid.com/json-parser
 
 def get_app_info(app_id):
@@ -53,10 +55,6 @@ def get_game_names(resp):
         except:
             pass
     
-    
-    
-    with open('testdata.json', 'w') as f:
-        json.dump(merged, f, indent = 4)
 
 
 
@@ -114,11 +112,17 @@ def search_for_app(search):
     searching = steam.apps.search_games(search)
     return jsonify(searching)
 
-@app.route('/test/gameowned')
+@app.route('/gameowned')
 def testgetgames():
-    user = steam.users.get_owned_games("76561198811058249")
-    print(user)
-    return jsonify({"error": "error"})
+    gamedetails = {}
+    user = steam.users.get_owned_games(os.environ.get("My_ID"))
+    for game in user['games']:
+            gamedetails[f'{game['name']}'] = ext.get_app_details(game['appid'], filters='categories,genres,controller_support,price_overview,screenshots')
+        
+    return jsonify(gamedetails)
+
+@app.route('/testdata')
+def
 
 
 if __name__ == '__main__':
