@@ -14,6 +14,8 @@ def get_app_info(app_id):
     url = f'http://store.steampowered.com/api/appdetails/?appids={app_id}'
     resp = requests.get(url)
     data = resp.json()
+    if not data[f'{app_id}']['success']:
+        return False        
     try:
         gameName = data[str(app_id)]['data']
     except:
@@ -37,11 +39,29 @@ def get_game_info(steam_id):
 
 def get_game_names(resp):
     games = resp.get('response', {}).get('games', [])
-    gameInfo = {}
+    merged = []
     for game in games:
-        appid = game.get('appid')
-        gameInfo[f'{appid}'] = get_app_info(appid)
-    return gameInfo
+        try:
+            appid = game.get('appid')
+            if not get_app_info(appid): #checks if data exists
+                continue
+            game_info = get_app_info(appid)  # This returns the game data
+            merged.append(game_info)
+        except:
+            pass
+    
+    
+    
+    with open('testdata.json', 'w') as f:
+        json.dump(merged, f, indent = 4)
+
+
+
+    # Return the JSON serialized object
+    return json.dumps(merged)
+    
+
+
 
 def build_dict(gameName):
     toReturn = {}
@@ -81,9 +101,8 @@ def full_json(app_id):
     url = f'http://store.steampowered.com/api/appdetails/?appids={app_id}'
     resp = requests.get(url)
     data = resp.json()
-    gameName = data[str(app_id)]['data']
     if resp.status_code == 200:
-        return jsonify(gameName)
+        return jsonify(data)
     else:
         return jsonify({'error': 'Failed to fetch game data'}), 500
 
