@@ -1,2 +1,4 @@
 # .gitignore
 .env
+testdata.json
+testuser.json
