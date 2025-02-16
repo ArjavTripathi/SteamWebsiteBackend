@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 import os
 import requests
@@ -9,24 +9,19 @@ app = Flask(__name__)
 
 STEAM_API_KEY = os.environ.get("API_KEY")
 #good json parser = https://jsongrid.com/json-parser
-@app.route('/game/<app_id>')
-def get_app_name(app_id):
+
+def get_app_info(app_id):
     url = f'http://store.steampowered.com/api/appdetails/?appids={app_id}'
     resp = requests.get(url)
     data = resp.json()
-    gameName = data[str(app_id)]['data']
-    toReturn = {}
-    toReturn['name'] = gameName['name']
-    toReturn['icon'] = gameName['capsule_image']
-    toReturn['isFree'] = gameName['is_free']
-    toReturn['genres'] = gameName['genres']
-    toReturn['url'] = gameName['website']
-    print(toReturn)
+    try:
+        gameName = data[str(app_id)]['data']
+    except:
+        return jsonify({'error': 'Failed to fetch game data'}), 500
     
-    if resp.status_code == 200:
-        return jsonify(gameName)
-    else:
-        return jsonify({'error': 'Failed to fetch user data'}), 500
+    toReturn = build_dict(gameName)
+    
+    return toReturn
 
 
 @app.route('/user/<steam_id>')
@@ -42,12 +37,56 @@ def get_game_info(steam_id):
 
 def get_game_names(resp):
     games = resp.get('response', {}).get('games', [])
-    gameid = []
+    gameInfo = {}
     for game in games:
         appid = game.get('appid')
-        gameid.append(appid)
-        print(f"AppID: {appid}")
-    return gameid
+        gameInfo[f'{appid}'] = get_app_info(appid)
+    return gameInfo
+
+def build_dict(gameName):
+    toReturn = {}
+    #Useful Data about Game to Return
+    toReturn['name'] = gameName['name']
+    toReturn['icon'] = gameName['capsule_image']
+    toReturn['isFree'] = gameName['is_free']
+    try:
+        toReturn['criticRating'] = gameName['metacritic']['score']
+    except:
+        pass
+    try:
+        toReturn['url'] = gameName['website']
+    except:
+        toReturn['url'] = f'steamcommunity.com/app/{app_id}'
+    toReturn['genres'] = [genre['description'] for genre in gameName['genres']]
+    #Gets useful categories ONLY
+    categories = gameName.get('categories', [])
+    result = []
+    wantedCategories = ['Single-player', 'Multi-player', 'Co-op', 'Online Co-op', 'Full controller support', 'Family Sharing']
+    for category in categories:
+        if category['description'] in wantedCategories:
+            result.append(category['description'])
+    toReturn['categories'] = result
+    toReturn['platforms'] = gameName['platforms']
+    if not toReturn['isFree']:
+        try:
+            toReturn['PriceCurrency'] = gameName['price_overview']['currency']
+            toReturn['priceAmount'] = gameName['price_overview']['initial']
+        except:
+            pass
+    return toReturn
+        
+
+@app.route('/test/<app_id>')
+def full_json(app_id):
+    url = f'http://store.steampowered.com/api/appdetails/?appids={app_id}'
+    resp = requests.get(url)
+    data = resp.json()
+    gameName = data[str(app_id)]['data']
+    if resp.status_code == 200:
+        return jsonify(gameName)
+    else:
+        return jsonify({'error': 'Failed to fetch game data'}), 500
+
 
     
 
