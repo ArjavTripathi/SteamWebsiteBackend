@@ -31,11 +31,12 @@ def full_json(app_id):
 @app.route('/search/<search>')
 def search_for_app(search):
     searching = steam.apps.search_games(search)
+
     return jsonify(searching)
 
 @app.route('/gameowned')
 def testgetgames():
-    wantedFilter = 'categories,genres,controller_support,price_overview'
+    wantedFilter = 'basic,categories,genres,controller_support,price_overview'
     #wantedFilter = 'name'
     gamedetails = {}
     user = steam.users.get_owned_games(os.environ.get("My_ID"))
