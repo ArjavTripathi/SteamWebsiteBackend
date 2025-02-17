@@ -6,4 +6,5 @@ newAPIdata.json
 appidGameNames.json
 appidOwnedGames.json
 *.log
+IgnoredTestData/
 /__pycache__
