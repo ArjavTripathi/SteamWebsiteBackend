@@ -22,7 +22,7 @@ class extendsAPI(Apps):
         if(json_loaded_response[f'{app_id}']['success']):
             if('categories' in split):
                 try:
-                    json_loaded_response[f'{app_id}']['data']['categories'] = [category['description'] for category in json_loaded_response[f'{app_id}']['data']['categories']]
+                    json_loaded_response[f'{app_id}']['data']['categories'] = [category['description'] for category in json_loaded_response[f'{app_id}']['data']['categories'] if category['description'] in {'Single-player', 'Multi-player', 'Co-op', 'Online Co-op', 'Full controller support', 'Family Sharing', 'Partial Controller Support', 'In-App Purchases', 'Cross-Platform Multiplayer', 'Shared/Split Screen', 'Remote Play on TV', 'Remote Play Together', 'VR Supported'}]
                 except:
                     pass
             if('genres' in split):
@@ -30,18 +30,8 @@ class extendsAPI(Apps):
                     json_loaded_response[f'{app_id}']['data']['genres'] = [genres['description'] for genres in json_loaded_response[f'{app_id}']['data']['genres']]
                 except:
                     pass
-            if('price_overview' in split):
-                try:
-                    json_loaded_response[f'{app_id}']['data']['price_overview'] = [{'currency': price['currency'], 'initial': price['initial']} for price in json_loaded_response[f'{app_id}']['data']['price_overview']]
-                except:
-                    pass
             if('name' in split and len(split) == 1):
                 try:
-                    name = list(json_loaded_response.keys())[0]
-                    json_loaded_response[f'name'] = name
-                    for key in list(json_loaded_response.keys()):
-                        if(key != 'name'):
-                            json_loaded_response.pop(key)
                     json_loaded_response = list(json_loaded_response.keys())
                 except:
                     pass
