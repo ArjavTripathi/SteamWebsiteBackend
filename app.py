@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from dotenv import load_dotenv
 from steam_web_api import Steam
 from steamapiextends import extendsAPI
@@ -11,6 +12,8 @@ import json
 load_dotenv()
 
 app = Flask(__name__)
+
+CORS(app)
 
 STEAM_API_KEY = os.environ.get("API_KEY")
 steam = Steam(STEAM_API_KEY)
