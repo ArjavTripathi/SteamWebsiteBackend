@@ -5,4 +5,5 @@ testuser.json
 newAPIdata.json
 appidGameNames.json
 appidOwnedGames.json
+*.log
 /__pycache__
